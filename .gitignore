@@ -1,0 +1,43 @@
+# --- Eclipse ------------------
+/Debug/
+/Release/
+/obj/
+*.o
+*.exe
+*.xml
+.settings/
+*.prefs
+.project
+language.settings.xml
+
+# VS CODE
+# --- Carpetas de build ---
+build/
+bin/
+Debug/
+Release/
+
+# --- Archivos compilados ---
+*.o
+*.obj
+*.so
+*.dll
+*.dylib
+*.exe
+*.out
+*.a
+*.lib
+
+# --- Archivos de depuración ---
+*.pdb
+*.ilk
+
+# --- Archivos de IDE (VS Code, Eclipse, etc.) ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Archivos de sistema ---
+.DS_Store
+Thumbs.db
