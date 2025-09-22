@@ -16,22 +16,51 @@ using namespace std;
 
 
 int main() {
+
 	unsigned size=7;
-	double Rt=6378; // Earth Radius
-	double hp=480; // Perigee altitude
-	double ha=800; // Apogee altitude
-	double rp=Rt+hp; // Perigee radius
-	double ra=Rt+ha; // Apogee radius
-	long double semimajorAxis=(rp+ra)/2;
+	float mass;
 	long double sv_m[size]={6858,0,0,0,7.7102,0,2000};
 
 	LDVector init_sv(sv_m, 7);
-	//double aux=get_max_absolute(init_sv); ??????
+	mass=init_sv[6];
+	SpaceVehicle my_sat(init_sv, mass);
+	// TESTS
+	/*	cout << "--------TESTs-------------\n";
+	run_tests();
+	cout << "-------- END OF TESTs-------------\n";*/
+
+	//run_venus_rendezvous();
+	//run_planetary_departure();
+	double mu_central=1.33e11;
+	double r_distance=39800000;
+	double R1=39800000;
+	double R2=155358642;
+	double semimajor_axis=(R1+R2)/2;
+	double semimajor_axis2=(R1+149000000)/2;
+	double v1, v2, dv;
+	v1=elliptic_velocity(semimajor_axis, r_distance, mu_central);
+	v2=elliptic_velocity(semimajor_axis2, r_distance, mu_central);
+	dv=v1-v2;
+	cout << "-------- DV : "<<dv<<endl;
+	cout << "-------- Semimajor a : "<< semimajor_axis2 <<endl;
+
+
+	//double Rt=6378;
+	//double hp=480; // Perigee altitude
+	//double ha=800; // Apogee altitude
+	//double rp=Rt+hp; // Perigee radius
+	//double ra=Rt+ha; // Apogee radius
+	//long double semimajorAxis=(rp+ra)/2;
+	//double aux=get_max_absolute(init_sv); ????????????????????????????????
+	//cout << aux << endl;
+
+
+
 
 	//-----------------------------------------
 	// Orbit 2 - With Continuous thrust
 	//-----------------------------------------
-	
+	/*
 	std::cout <<"---------------------"<<std::endl;
 	std::cout <<"- CONTINUOUS THRUST "<<std::endl;
 	std::cout <<"---------------------"<<std::endl;
@@ -54,9 +83,12 @@ int main() {
 	double delta_nu=(M_PI-thrust_prop.nu)*180.0/M_PI; // computes delta true anomaly to apogee
 	std::cout <<"Delta anomaly nu: "<<delta_nu <<std::endl;
 	LDVector final = sv_from_true_anomaly(thrust_prop.last_sv,delta_nu); //to compute radius at final point
-	cout << "At apogee: " << final << endl;
+	cout << "At apogee: " << final << endl;*/
+
+
 
 	/*
+
 	//-----------------------------------------
 	// Orbit 1 - Initial - Central Body
 	//-----------------------------------------
@@ -134,12 +166,16 @@ int main() {
 	// End of Propagation
 	std::cout << "Propagation time: "<<float( clock () - begin_time ) /  CLOCKS_PER_SEC << endl;
 
+
+
+
+
 	// End of Code
 	std::cout << "Propagation time: "<<float( clock () - begin_time ) /  CLOCKS_PER_SEC << endl;
-	cout << endl; */
-	cout<<"End of processing!"<<std::endl;
-	
-	system("pause"); // Wait until press a key. 
+	cout << endl;
+	cout<<"End of processing!";
+	*/
+
 	return 0;
 }
 

@@ -114,24 +114,25 @@ void propagator::addPerturbation(LDVector (*funcptr)(void *, const LDVector&),vo
 void propagator::propagate(string const& filename)
 {
 	// Propagation with RK4
-	//int i;
-	//int step_num; // !! to control if finish by defect of by excess
-	//vector<LDVector> sv_list;
+	int i;
+	int step_num; // !! to control if finish by defect of by excess
+	vector<LDVector> sv_list;
 	ofstream outputFile;
-	//step_num=this->total_time/this->step;
+	step_num=this->total_time/this->step;
 	// TO DO! check init vector is not null
-	/*for (i=0; i<=step_num; i++){
+	for (i=0; i<=step_num; i++){
+		// Propagates RK4 for step_num steps 
 		this->current_sv=this->RK4();
 		sv_list.push_back(this->current_sv);
-	}*/
+	}
 	//this->current_sv=this->RK4_iter(this->total_time);
 	// TO DO! Replace the printing file for a sv_list as a propagation attribute
 	outputFile.open(filename);
-	/*for (LDVector sv : sv_list){
+	for (LDVector sv : sv_list){
 		outputFile <<sv<<endl;
-	}*/
+	}
 	outputFile.close();
-	//this->last_sv=sv_list.back();
+	this->last_sv=sv_list.back();
 	cout<<"Finished!"<<endl;
 }
 

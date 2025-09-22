@@ -24,3 +24,7 @@ target_link_libraries(uranio_exec uranio_lib)
 set_target_properties(uranio_exec PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
+
+# Opcional: ejecutables de tests
+#add_executable(test tests/test1.cpp)
+#target_link_libraries(test_old PRIVATE uranio)
