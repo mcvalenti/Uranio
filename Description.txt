@@ -74,3 +74,14 @@ v_parking=sqrt(mu_earth/rp)
 delta_v=v_parking*(sqrt(2+(v_inf/v_parking)^2)-1)
 
 Probado en GMAT
+
+
+============================================================================================
+ RUN Cmake and compilations
+ ===========================================================================================
+$ cd build
+$ cmake --build .
+
+# Luego para compilar
+$ cd build
+$ ./uranio_exec
