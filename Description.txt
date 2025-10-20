@@ -82,6 +82,6 @@ Probado en GMAT
 $ cd build
 $ cmake --build .
 
-# Luego para compilar
+# Luego para correr el main
 $ cd build
 $ ./uranio_exec
