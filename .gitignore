@@ -41,3 +41,5 @@ Release/
 # --- Archivos de sistema ---
 .DS_Store
 Thumbs.db
+output_Files/orbit1.csv
+output_Files/orbit3.csv
