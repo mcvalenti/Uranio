@@ -133,7 +133,6 @@ void propagator::propagate(string const& filename)
 	}
 	outputFile.close();
 	this->last_sv=sv_list.back();
-	cout<<"Finished!"<<endl;
 }
 
 
@@ -288,7 +287,7 @@ void propagator::sv2oe(LDVector& init_sv){
 
 	aux1=e_vec*(1.0/this->e);
 	aux2=pos*(1/pos_mod);
-	cout<<"dot product: "<<dot3(aux1,aux2)<<endl;
+
 	if (vr>=0){
 		this->nu=acosl(dot3(aux1,aux2));
 	}

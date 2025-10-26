@@ -10,10 +10,14 @@
 #include "LDVector.h"
 #include "my_tests.h"
 #include "mission.h"
-#include "interplanetary.h"
+//#include "interplanetary.h"
 #include "orbit_dynamics.h"
 
 using namespace std;
+
+float distance_residual (const LDVector sv, float const distance){
+	return sqrt(sv[0]*sv[0]+sv[1]*sv[1]+sv[2]*sv[2]);
+}
 
 int main() {
 
@@ -27,26 +31,32 @@ int main() {
         project_root = exec_path.parent_path();
     // ---- ------------------- ------------------   
 
+	// SET INIT CONDITIONS
+	// ---- ------------------- ------------------   
+	// Curtis Esample - page 323 and 369
+	// ---- ------------------- ------------------   
+
 	unsigned size=7;
 	double Rt=6378; // Earth Radius
 	double hp=480; // Perigee altitude
 	double ha=800; // Apogee altitude
 	double rp=Rt+hp; // Perigee radius
 	double ra=Rt+ha; // Apogee radius
+	double mass = 2000.0; // mass [kg]
 	long double semimajorAxis=(rp+ra)/2;
-	long double sv_m[size]={rp,0,0,0,7.7102,0,2000};
+	long double sv_m[size]={rp,0,0,0,7.7102,0,mass};
 
 	LDVector init_sv(sv_m, 7);
 	//double aux=get_max_absolute(init_sv); ??????
 
 
 	//-----------------------------------------
-	// Orbit 1 - Initial - Central Body
+	// Orbit 1 - Parking Orbit - Central Body
 	//-----------------------------------------
 	std::cout <<std::endl;
 	std::cout <<std::endl;
 	std::cout <<"---------------------"<<std::endl;
-	std::cout <<"- CENTRAL BODY "<<std::endl;
+	std::cout <<"- PARKING ORBIT - "<<std::endl;
 	std::cout <<"---------------------"<<std::endl;
 	float step=1.0;
 	double period0=period(semimajorAxis);
@@ -54,71 +64,81 @@ int main() {
 	string filename0=(project_root / "output_files/orbit1.csv").string();
 
 	// First propagation instance
-	propagator cbody_prop(init_sv,total_time,step);
+	propagator parking_orbit(init_sv,total_time,step);
 	cBody_param cbody;
 	cbody.mu=398600.448;
 	LDVector cbody_last_sv;
-
-	// Add perturbation
-	cbody_prop.addPerturbation(&central_body, &cbody); // args: function and structure
-	const clock_t begin_time = clock();
-	cbody_prop.propagate(filename0);
-	cbody_last_sv=cbody_prop.last_sv;
-
-	std::cout <<cbody_prop.last_sv <<std::endl;
-	cbody_prop.sv2oe(cbody_prop.last_sv);
-	std::cout <<"Semimajor Axis : "<<cbody_prop.a <<std::endl;
+	parking_orbit.addPerturbation(&central_body, &cbody); // args: function and structure
+	parking_orbit.propagate(filename0);
+	cbody_last_sv=parking_orbit.last_sv;
+	parking_orbit.sv2oe(parking_orbit.last_sv);
+	// TODO: create a method that print orbit keplerian elements
+	std::cout <<"Semimajor Axis : "<<parking_orbit.a <<std::endl;
+	std::cout <<"True Anomaly : "<<parking_orbit.nu <<std::endl;
 
 
 	//-----------------------------------------
-	// Orbit 2 - With Continuous thrust
+	// Orbit 2 - TRANSFER ORBIT
+	// With Continuous thrust
 	//-----------------------------------------
 	std::cout <<"---------------------"<<std::endl;
-	std::cout <<"- CONTINUOUS THRUST "<<std::endl;
+	std::cout <<"- TRANSFER ORBIT "<<std::endl;
 	std::cout <<"---------------------"<<std::endl;
-	float thrust_time=261.1127;
-	float thrust_step=0.1;
+	float thrust_time=261.0; //1127; // NOTE! Only represents the complete time if step=1.0
+	float thrust_step=1.0;
 	string filename1=(project_root / "output_files/orbit2.csv").string();
-	propagator thrust_prop(init_sv,thrust_time,thrust_step);
+	propagator transfer_orbit(init_sv,thrust_time,thrust_step);
 	thrust_param tparam;
 	tparam.isp = 300.0;
 	tparam.thrust = 10000.0;
-	thrust_prop.addPerturbation(&central_body, &cbody);
-	thrust_prop.addPerturbation(&thrust, &tparam);
-	thrust_prop.propagate(filename1);
-
-
-	cout<<" End-of-burn state vector: "<<thrust_prop.last_sv<<endl;
-	thrust_prop.sv2oe(thrust_prop.last_sv);
-	std::cout <<"True anomaly nu: "<<thrust_prop.nu <<std::endl;
-	double delta_nu=(M_PI-thrust_prop.nu)*180.0/M_PI; // computes delta true anomaly to apogee
+	transfer_orbit.addPerturbation(&central_body, &cbody);
+	transfer_orbit.addPerturbation(&thrust, &tparam);
+	transfer_orbit.propagate(filename1);
+	transfer_orbit.sv2oe(transfer_orbit.last_sv);
+	std::cout <<"End-of-burn state vector : "<<transfer_orbit.last_sv <<std::endl;
+	std::cout <<"Semimajor Axis : "<<transfer_orbit.a <<std::endl;
+	std::cout <<"Eccentricity : "<<transfer_orbit.e <<std::endl;
+	std::cout <<"True anomaly nu: "<<transfer_orbit.nu <<std::endl;
+	double delta_nu=(M_PI-transfer_orbit.nu)*180.0/M_PI; // computes delta true anomaly to apogee
 	std::cout <<"Delta anomaly nu: "<<delta_nu <<std::endl;
-	LDVector final = sv_from_true_anomaly(thrust_prop.last_sv,delta_nu); //to compute radius at final point
-	cout << "At apogee: " << final << endl;
+	// State Vector in Apogee
+	LDVector apogee_sv = sv_from_true_anomaly(transfer_orbit.last_sv,delta_nu); //to compute radius at final point
+	long double apogee_with_mass[7]={apogee_sv[0], apogee_sv[1],apogee_sv[2],apogee_sv[3],apogee_sv[4],apogee_sv[5],transfer_orbit.last_sv[6]} ;
+	LDVector apogee_sv1(apogee_with_mass, 7);
+	std::cout <<"Apogee state vector: "<<apogee_sv1 <<std::endl;
 
-	// if not ra=22378 --> increase thrust_time
+	std::cout <<"---------------------"<<std::endl;
+	std::cout <<"- Propagation without thrusting "<<std::endl;
+	std::cout <<"---------------------"<<std::endl;
+	// TODO - PROPAGATE TO APOGEE how to get time to propagate ?????
 
-	//Estimation
-	long double semimajor_axis_transfer=14618.0;
-	double period2=period(semimajor_axis_transfer);
-	// transfer Free propagation
-	propagator free_prop(thrust_prop.last_sv,period2-thrust_time,step);
-	cBody_param free_body;
-	free_body.mu=398600.448;
-	LDVector free_body_last_sv;
+	std::cout <<"---------------------"<<std::endl;
+	std::cout <<"- Circularization Orbit "<<std::endl;
+	std::cout <<"---------------------"<<std::endl;	
+	float thrust_time_circ=118.88; 
+	float thrust_step_circ=1.0;
+	string filename2=(project_root / "output_files/orbit3.csv").string();
+	propagator circularization_orbit(apogee_sv1,thrust_time_circ,thrust_step_circ);
+	circularization_orbit.addPerturbation(&central_body, &cbody);
+	circularization_orbit.addPerturbation(&thrust, &tparam);
+	circularization_orbit.propagate(filename2);
+	circularization_orbit.sv2oe(circularization_orbit.last_sv);
+	std::cout <<"End-of-burn state vector : "<<circularization_orbit.last_sv <<std::endl;
+	std::cout <<"Semimajor Axis : "<<circularization_orbit.a <<std::endl;
 
-	// Add perturbation
-	free_prop.addPerturbation(&central_body, &free_body); // args: function and structure
-	string filename3=(project_root / "output_files/orbit3.csv").string();
-	free_prop.propagate(filename3);
-	free_prop.sv2oe(free_prop.last_sv);
-	std::cout <<"Semimajor Axis : "<<free_prop.a <<std::endl;
+	std::cout <<"Eccentricity : "<<circularization_orbit.e <<std::endl;
+	std::cout <<"True anomaly nu: "<<circularization_orbit.nu <<std::endl;
 
-	// End of Propagation
-	std::cout << "Propagation time: "<<float( clock () - begin_time ) /  CLOCKS_PER_SEC << endl;
+	std::cout <<"---------------------"<<std::endl;
+	std::cout <<"- Final Orbit "<<std::endl;
+	std::cout <<"---------------------"<<std::endl;
+	float final_time=20000.88; 
+	float final_step=1.0;
+	string filename4=(project_root / "output_files/orbit4.csv").string();
+	propagator final_orbit(circularization_orbit.last_sv, final_time, final_step);
+	final_orbit.addPerturbation(&central_body, &cbody); // args: function and structure
+	final_orbit.propagate(filename4);
 
-	// End of Code
-	std::cout << "Propagation time: "<<float( clock () - begin_time ) /  CLOCKS_PER_SEC << endl;
 	cout << endl;
 	cout<<"End of processing!";
 	
