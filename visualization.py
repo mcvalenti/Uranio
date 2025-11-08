@@ -3,6 +3,10 @@ import plotly.graph_objects as go
 
 
 columns = ['x','y','z','vx','vy','vz','m']
+
+df0 = pd.read_csv('output_Files/orbit0.csv', sep='\t',  names=columns, header=None, index_col=False)
+df0['orbit']=0
+
 df1 = pd.read_csv('output_Files/orbit1.csv', sep='\t',  names=columns, header=None, index_col=False)
 df1['orbit']=1
 
@@ -15,7 +19,7 @@ df3['orbit']=3
 df4 = pd.read_csv('output_Files/orbit4.csv', sep='\t',  names=columns, header=None, index_col=False)
 df4['orbit']=4
 
-df_total = pd.concat([df1, df2, df3, df4], ignore_index=True)
+df_total = pd.concat([df0, df1, df2, df3, df4], ignore_index=True)
 print(df_total.info())
 
 

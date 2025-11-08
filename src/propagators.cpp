@@ -111,28 +111,37 @@ void propagator::addPerturbation(LDVector (*funcptr)(void *, const LDVector&),vo
     vec_functions.push_back(funcptr);
     vec_params.push_back(param);
  }
-void propagator::propagate(string const& filename)
+void propagator::propagate()
 {
 	// Propagation with RK4
 	int i;
 	int step_num; // !! to control if finish by defect of by excess
-	vector<LDVector> sv_list;
-	ofstream outputFile;
+	this->sv_list.clear();
 	step_num=this->total_time/this->step;
 	// TO DO! check init vector is not null
 	for (i=0; i<=step_num; i++){
 		// Propagates RK4 for step_num steps 
 		this->current_sv=this->RK4();
-		sv_list.push_back(this->current_sv);
+		this->sv_list.push_back(this->current_sv);
 	}
 	//this->current_sv=this->RK4_iter(this->total_time);
-	// TO DO! Replace the printing file for a sv_list as a propagation attribute
+	this->last_sv=sv_list.back();	
+}
+
+void propagator::reset_init(LDVector& update_sv, float update_total_time, float update_step){
+	this->total_time= update_total_time;
+	this->step = update_step;
+	this->init_sv = update_sv;
+	this->current_sv= update_sv;
+}
+
+void propagator::ephemeris_tofile(string const& filename){
+	ofstream outputFile;
 	outputFile.open(filename);
-	for (LDVector sv : sv_list){
+	for (LDVector sv : this->sv_list){
 		outputFile <<sv<<endl;
 	}
 	outputFile.close();
-	this->last_sv=sv_list.back();
 }
 
 
@@ -268,7 +277,11 @@ void propagator::sv2oe(LDVector& init_sv){
 	this->e=sqrtl(e_vec[0]*e_vec[0]+e_vec[1]*e_vec[1]+e_vec[2]*e_vec[2]);
 
 	// semimajor axis
-	this->a = h_mod*h_mod/(GM*(1-this->e*this->e));
+	double rp;
+	double ra;
+	rp = (h_mod*h_mod/GM) *(1/(1+this->e*cos(0.0)));
+	ra = (h_mod*h_mod/GM) *(1/(1+this->e*cos(M_PI)));
+	this->a = (rp+ra)/2.0;
 
 	// Mean anomaly
 
