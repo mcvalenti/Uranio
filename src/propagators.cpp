@@ -23,13 +23,13 @@ LDVector thrust(void *param, const LDVector& dv){
 		output: thrust acceleration LDVector
 */
     thrust_param* thr_p = (thrust_param*)param;
-	const long double g0=9.81; // [km/s2]
+	const long double g0=9.81; 
 	long double vel_norm;
 	long double coeff;
 	LDVector acc_thrust(7);
 
     vel_norm=sqrtl(dv[3]*dv[3]+dv[4]*dv[4]+dv[5]*dv[5]);
-    coeff=thr_p->thrust/(dv[6]*vel_norm*1000); // Thrust aligned with velocities [km/s2]
+    coeff=thr_p->thrust/(dv[6]*vel_norm); 
     acc_thrust[0]=0.0;
     acc_thrust[1]=0.0;
     acc_thrust[2]=0.0;
@@ -69,6 +69,17 @@ LDVector central_body(void* param, const LDVector& dv){
 	cbody_acc[6]=0;
     return cbody_acc;
 }
+
+propagator::propagator(){ // Default - LEO orbit
+	long double sv_m0[7]={6858000.0,0,0,0,7710.2,0,2000};
+	LDVector init_sv0(sv_m0,7);
+	float total_time0=90*60; // period LEO
+	float step0 = 0.5; // [seg]
+	this->init_sv = init_sv0;
+	this->total_time = total_time0;
+	this->step = step0;
+	this->current_sv=init_sv;
+	};
 
 
 propagator::propagator(LDVector& init_sv, float total_time, float step){
@@ -130,8 +141,8 @@ void propagator::propagate()
 
 void propagator::reset_init(LDVector& update_sv, float update_total_time, float update_step){
 	this->total_time= update_total_time;
-	this->step = update_step;
-	this->init_sv = update_sv;
+	this->step 		= update_step;
+	this->init_sv 	= update_sv;
 	this->current_sv= update_sv;
 }
 
@@ -153,12 +164,12 @@ LDVector propagator::RK4(){
 	LDVector dv1;
 	LDVector dv = this->current_sv;
 
-	k1=derivatives(dv)*this->step;
-	y1=dv+k1*0.5;
-	k2=derivatives(y1)*this->step;
-	y2=dv+k2*0.5;
-	k3=derivatives(y2)*this->step;
-	y3=dv+k3;
+	k1=derivatives(dv);
+	y1=dv+k1*0.5*this->step;
+	k2=derivatives(y1);
+	y2=dv+k2*0.5*this->step;
+	k3=derivatives(y2);
+	y3=dv+k3*this->step;
 	k4=derivatives(y3);
 	dv1=dv+(k1+k2*2+k3*2+k4)*((long double)(1.0L/6.0L))*this->step;
 
@@ -218,7 +229,7 @@ void propagator::sv2oe(LDVector& init_sv){
 
 	//long double mu=398600.448;
 	//long double earth_radius=6378.0; //[km]
-	long double GM=398600.4405; //[km3/s2]
+	long double GM=3.98600448e14; // [m*3/s*2]
 	LDVector pos(3);
 	LDVector vel(3);
 	long double pos_mod;
@@ -316,7 +327,7 @@ LDVector sv_from_true_anomaly(LDVector& sv, double delta_nu){
 	 delta_nu [deg]
 	 */
 
-	long double GM=398600.4405; //[km3/s2]
+	long double GM=3.98600448e14; // [m*3/s*2]
 	LDVector new_sv(6);
 	LDVector pos1(3);
 	LDVector vel1(3);
@@ -382,7 +393,12 @@ LDVector sv_from_true_anomaly(LDVector& sv, double delta_nu){
 void lagrange_coeff_from_true_anomaly(long double r, long double r0, long double h, double delta_nu,
 										double& f, double& g, double &fdot, double &gdot){
 
-	long double GM=398600.4405; //[km3/s2]
+	/* Curtis - TO DO - describe
+	 -------------------------------------------------------------------
+	 delta_nu [rad]
+	 */
+
+	long double GM=3.98600448e14; // [m*3/s*2]
 	long double square_bracket;
 
 	f=1.0-(GM*r/(h*h))*(1-cosl(delta_nu));

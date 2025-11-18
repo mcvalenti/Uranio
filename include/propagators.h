@@ -58,14 +58,7 @@ class propagator
 	LDVector last_sv;
 	long double a,e,i,RAAN,arg_per,nu;
 	// Constructors
-	propagator(){ // Default - LEO orbit
-		long double sv_m[7]={7858.0,0,0,0,7.7102,0,1200};
-		LDVector init_sv(sv_m,7);
-		float total_time=90*60; // period LEO
- 		float step = 1.0; // [seg]
-
-	};
-
+	propagator(); // default - LEO orbit
 	propagator(LDVector& init_sv, float total_time, float step);
 	propagator(long double a, long double e, long double i,
 			long double RAAN, long double arg_per, long double nu);
