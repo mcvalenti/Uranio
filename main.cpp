@@ -107,7 +107,8 @@ int main() {
 
 	int iter_num=1;
 	string iter_file="output_files/orbit"+to_string(iter_num)+".csv";
-	while ((res_ra_min > tol && transfer_orbit.current_sv[6]> 0)){
+	double mass_value= init_sv[6];
+	while ((res_ra_min > tol && mass_value > 0)){
 		string filename0=(project_root / iter_file).string();
 		transfer_orbit.reset_init(init_sv,thrust_time,thrust_step);
 		transfer_orbit.addPerturbation(&central_body, &cbody); 
@@ -128,6 +129,7 @@ int main() {
 		double ra_apogee = sqrt(apogee_sv1[0]*apogee_sv1[0]+apogee_sv1[1]*apogee_sv1[1]+apogee_sv1[2]*apogee_sv1[2]);
 		//std::cout <<" ra apogee computed: " << ra_apogee/1000.0 << std::endl;
 		std::cout <<" Iteration final mass: " << transfer_orbit.last_sv[6] << std::endl;
+		mass_value = transfer_orbit.last_sv[6];
 		double ra_target = 22378000.0; // [m]
 		double res_ra = abs(ra_apogee - ra_target);
 		//std::cout <<" Semimajor axis post burn: " << transfer_orbit.a << std::endl;
@@ -136,7 +138,9 @@ int main() {
 			thrust_time_min = thrust_time;
 		}
 		thrust_time = thrust_time + 1;
+		transfer_orbit.ephemeris_tofile(iter_file);
 		iter_num=iter_num + 1;
+		iter_file="output_files/orbit"+to_string(iter_num)+".csv";
 	}
 
 	transfer_orbit.ephemeris_tofile(filename1);
@@ -147,7 +151,7 @@ int main() {
 	std::cout <<"--------------------------------"	<<std::endl;
 	std::cout <<"- Propagation without thrusting "	<<std::endl;
 	std::cout <<"--------------------------------"	<<std::endl;
-	string filename2=(project_root / "output_files/orbit2.csv").string();
+	string filename2=(project_root / "output_files/orbit_2.csv").string();
 	double time_to_apogee = time_between_two_true_anomalies(transfer_orbit.nu, M_PI, transfer_orbit.e, transfer_orbit.a, cbody.mu);
 	propagator onTransfer_orbit(transfer_orbit.last_sv,time_to_apogee,thrust_step);
 	onTransfer_orbit.addPerturbation(&central_body, &cbody);

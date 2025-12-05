@@ -26,5 +26,5 @@ set_target_properties(uranio_exec PROPERTIES
 )
 
 # Opcional: ejecutables de tests
-#add_executable(test tests/test1.cpp)
-#target_link_libraries(test_old PRIVATE uranio)
+add_executable(test0 tests/test0.cpp)
+target_link_libraries(test0 PRIVATE uranio_lib)

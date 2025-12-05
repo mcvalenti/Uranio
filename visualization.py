@@ -15,13 +15,13 @@ df1['orbit']=1
 df2 = pd.read_csv('output_Files/orbit2.csv', sep='\t',  names=columns, header=None, index_col=False)
 df2['orbit']=2
 
-df3 = pd.read_csv('output_Files/orbit_3.csv', sep='\t',  names=columns, header=None, index_col=False)
+df3 = pd.read_csv('output_Files/orbit3.csv', sep='\t',  names=columns, header=None, index_col=False)
 df3['orbit']=3
 
 df4 = pd.read_csv('output_Files/orbit_4.csv', sep='\t',  names=columns, header=None, index_col=False)
 df4['orbit']=4
 
-df_total = pd.concat([df0, df1, df2], ignore_index=True) #  df1, df2, df3, df4
+df_total = pd.concat([df0], ignore_index=True) #  df1, df2, df3, df4
 print(df_total.info())
 
 
